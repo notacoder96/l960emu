@@ -1,0 +1,166 @@
+diff --git a/source/dsp56kEmu/dsp.cpp b/source/dsp56kEmu/dsp.cpp
+index 5f023c01..fa5e06c2 100644
+--- a/source/dsp56kEmu/dsp.cpp
++++ b/source/dsp56kEmu/dsp.cpp
+@@ -67,6 +67,7 @@ namespace dsp56k
+ 
+ 	DSP::TInterruptFunc findExecPeripheralsFunc(IPeripherals* _pX, IPeripherals* _pY) noexcept
+ 	{
++		if(const auto func = findExecPeripheralsFuncT<PeripheralsGeneric, PeripheralsNop>(_pX, _pY))	return func;
+ 		if(const auto func = findExecPeripheralsFuncT<Peripherals56362, PeripheralsNop>(_pX, _pY))		return func;
+ 		if(const auto func = findExecPeripheralsFuncT<Peripherals56362, Peripherals56367>(_pX, _pY))	return func;
+ 		if(const auto func = findExecPeripheralsFuncT<Peripherals56303, PeripheralsNop>(_pX, _pY))		return func;
+diff --git a/source/dsp56kEmu/jitmem.cpp b/source/dsp56kEmu/jitmem.cpp
+index e1a794d7..37b4fef7 100644
+--- a/source/dsp56kEmu/jitmem.cpp
++++ b/source/dsp56kEmu/jitmem.cpp
+@@ -890,6 +890,49 @@ namespace dsp56k
+ 		m_block.asm_().mov(r32(_dst.get()), r32(regReturnVal));
+ 	}
+ 
++	void Jitmem::readExternalBus(DspValue& _dst, const JitReg32& _offset) const
++	{
++		{
++			const FuncArg r0(m_block, 0);
++			const FuncArg r1(m_block, 1);
++
++			auto assignArg = [this](const uint32_t _index, const JitRegGP& _d, const JitRegGP& _s)
++			{
++				if(_index == 0)
++					makeDspPtr(_d.as<JitReg64>());
++				else if(r32(_d) != r32(_s))
++					m_block.asm_().mov(r32(_d), r32(_s));
++			};
++
++			assignFuncArgs({r0, r1}, {regDspPtr, _offset}, assignArg);
++
++			m_block.stack().call(asmjit::func_as_ptr(&callDSPExternalBusRead));
++		}
++
++		if (!_dst.isRegValid())
++			_dst.temp(DspValue::Memory);
++
++		m_block.asm_().mov(r32(_dst.get()), r32(regReturnVal));
++	}
++
++	void Jitmem::readExternalBus(DspValue& _dst, const DspValue& _offset) const
++	{
++		if (_offset.isImm24())
++		{
++			readExternalBus(_dst, _offset.imm24());
++		}
++		else if(JitStackHelper::isFuncArg(_offset.get(), 2))
++		{
++			const RegGP offset(m_block);
++			m_block.asm_().mov(r32(offset), r32(_offset.get()));
++			readExternalBus(_dst, r32(offset));
++		}
++		else
++		{
++			readExternalBus(_dst, r32(_offset.get()));
++		}
++	}
++
+ 	void Jitmem::writeExternalBus(const TWord _offset, const DspValue& _value) const
+ 	{
+ 		const FuncArg r0(m_block, 0);
+diff --git a/source/dsp56kEmu/jitmem.h b/source/dsp56kEmu/jitmem.h
+index bcd885cb..abc23fcc 100644
+--- a/source/dsp56kEmu/jitmem.h
++++ b/source/dsp56kEmu/jitmem.h
+@@ -123,6 +123,7 @@ namespace dsp56k
+ 		// external bus devices, see externalbusdevice.h. No memory area, the external bus has no X/Y distinction
+ 		bool isExternalBusAddress(TWord _addr) const;
+ 		void readExternalBus(DspValue& _dst, TWord _offset) const;
++		void readExternalBus(DspValue& _dst, const DspValue& _offset) const;
+ 		void writeExternalBus(TWord _offset, const DspValue& _value) const;
+ 		void writeExternalBus(const DspValue& _offset, const DspValue& _value) const;
+ 
+@@ -158,6 +159,7 @@ namespace dsp56k
+ 
+ 		void writePeriph(EMemArea _area, const JitReg32& _offset, const DspValue& _value) const;
+ 		void writeExternalBus(const JitReg32& _offset, const DspValue& _value) const;
++		void readExternalBus(DspValue& _dst, const JitReg32& _offset) const;
+ 
+ 		const TWord* getMemAreaHostPtr(EMemArea _area) const;
+ 
+diff --git a/source/dsp56kEmu/jitops_mem.cpp b/source/dsp56kEmu/jitops_mem.cpp
+index 6cc0231f..08c46000 100644
+--- a/source/dsp56kEmu/jitops_mem.cpp
++++ b/source/dsp56kEmu/jitops_mem.cpp
+@@ -47,8 +47,42 @@ namespace dsp56k
+ 			if(!m_block.getConfig().dynamicPeripheralAddressing)
+ 			{
+ 				debugDynamicPeripheralAddressing(r32(_offset));
+-				// Disable reading peripherals with dynamic addressing (such as (r0)+) as it is costly but most likely unused
+-				m_block.mem().readDspMemory(_dst, _area, _offset);
++				const auto& config = m_block.getConfig();
++				if(!config.externalBusEnd)
++				{
++					// Disable reading peripherals with dynamic addressing (such as (r0)+) as it is costly but most likely unused
++					m_block.mem().readDspMemory(_dst, _area, _offset);
++				}
++				else
++				{
++					// An external bus device also has to see reads addressed dynamically, e.g. a buffer in
++					// dual-port RAM walked with x:(r1)+. Same window test as for writes below.
++					const auto begin = config.externalBusBegin;
++					const auto size = config.externalBusEnd - begin;
++
++					If(m_block, m_blockRuntimeData, [&](const asmjit::Label& _toFalse)
++					{
++						const RegGP temp(m_block);
++						m_asm.mov(r32(temp), r32(_offset.get()));
++						if(begin)
++							m_asm.sub(r32(temp), asmjit::Imm(begin));
++#ifdef HAVE_ARM64
++						const RegScratch scratch(m_block);
++						m_asm.mov(r32(scratch), asmjit::Imm(size));
++						m_asm.cmp(r32(temp), r32(scratch));
++#else
++						m_asm.cmp(r32(temp), asmjit::Imm(size));
++#endif
++						m_asm.jb(_toFalse);
++					}, [&]()
++					{
++						m_block.mem().readDspMemory(_dst, _area, _offset);
++					}, [&]()
++					{
++						m_block.mem().readExternalBus(_dst, _offset);
++					}, true, false, false
++					);
++				}
+ 			}
+ 			else
+ 			{
+diff --git a/source/dsp56kEmu/peripherals.h b/source/dsp56kEmu/peripherals.h
+index fb3bd9ce..17245b25 100644
+--- a/source/dsp56kEmu/peripherals.h
++++ b/source/dsp56kEmu/peripherals.h
+@@ -23,7 +23,8 @@ namespace dsp56k
+ 		PeripheralsNop,
+ 		Peripherals56303,
+ 		Peripherals56362,
+-		Peripherals56367
++		Peripherals56367,
++		PeripheralsGeneric
+ 	};
+ 
+ 	enum XIO
+@@ -152,6 +153,16 @@ namespace dsp56k
+ 		void terminate() override {}
+ 	};
+ 
++	// Host-defined peripherals (added for the Lexicon 960L emulator). The host implements the X:$FFFF80+
++	// register file and its own periodic processing, e.g. a DSP56301 HI32 PCI host interface.
++	class PeripheralsGeneric : public IPeripherals
++	{
++	public:
++		PeripheralsGeneric() : IPeripherals(PeripheralType::PeripheralsGeneric) {}
++		uint32_t exec() noexcept { return execGeneric(); }
++		virtual uint32_t execGeneric() noexcept = 0;
++	};
++
+ 	class Peripherals56303 final : public IPeripherals
+ 	{
+ 		// _____________________________________________________________________________

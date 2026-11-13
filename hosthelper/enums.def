@@ -1,0 +1,7 @@
+LIBRARY Enums.dll
+EXPORTS
+    ?FindCommandString@@YAQBDW4COMMAND@@@Z=EnumsOrig.?FindCommandString@@YAQBDW4COMMAND@@@Z @1
+    ?FindErrvalString@@YAQBDW4ERRVAL@@@Z=EnumsOrig.?FindErrvalString@@YAQBDW4ERRVAL@@@Z @2
+    ?FindSoftwarePackageString@@YAQBDW4SOFTWAREPACKAGE@@@Z=EnumsOrig.?FindSoftwarePackageString@@YAQBDW4SOFTWAREPACKAGE@@@Z @3
+    ?FindTraceString@@YAQBDW4TRACE_COMMAND@@@Z=EnumsOrig.?FindTraceString@@YAQBDW4TRACE_COMMAND@@@Z @4
+    ?FindZ80commandString@@YAQBDW4Z80_DSP_OPCODE@@@Z=EnumsOrig.?FindZ80commandString@@YAQBDW4Z80_DSP_OPCODE@@@Z @5
