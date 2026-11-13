@@ -84,3 +84,5 @@ Library,	Version,	Licence,	Copyright
 floooh/chips (Z80 core)	commit 9e88298c	zlib/libpng	Andre Weissflog
 
 > MinGW-w64 runtime, libgcc, libstdc++ (in the hook DLL)	—	GCC Runtime Library Exception and the MinGW-w64 licences	GNU / MinGW-w64 projects
+
+For more information on how this works, see the **960L Emulator — System Architecture.md** file in the root of the repo.
