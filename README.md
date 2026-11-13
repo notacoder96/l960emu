@@ -66,7 +66,7 @@ To run
 
 > Your own copy of the 960L V4.x software folder. It isn’t included and can’t be redistributed.
 
-> macOS/Linux: Wine, set up through L960_HELPER_CMD. I’ve only tested this on Linux.
+> macOS/Linux: Wine, set up through L960_HELPER_CMD. Theoretically.
 
 > Credits (libraries in the build)
 
