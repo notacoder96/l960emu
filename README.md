@@ -43,3 +43,39 @@ Yes, you technically can, although I don’t recommend it because this has only 
 
 **Does it actually sound like the original hardware?**
 I have no idea. I like how it sounds here, but I don’t have the original hardware to compare it against. There are likely inaccuracies in how this thing handles emulating the specialized Lexichips and whatnot the DSP of the 960L runs on.
+
+
+To build
+
+> CMake 3.22 or newer, Git, and a C++20 compiler. On Windows that’s Visual Studio 2022 with “Desktop development with C++”. Ninja is optional.
+
+> Internet access on the first configure. CMake downloads the libraries below at pinned versions and re-applies the dsp56300 patch by itself.
+
+> Linux only: JUCE’s system packages: libasound2-dev libfreetype-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libfontconfig1-dev libgl1-mesa-dev.
+
+> Optional: MinGW-w64 (i686). You only need it to rebuild the hook DLL. A prebuilt copy is already embedded.
+
+> Optional: Python with pefile, capstone and Pillow. These are only for the reverse-engineering tools and the example-skin generator.
+
+To run
+
+> 64-bit Windows 10/11. Its standard 32-bit support runs the original host software, and the mfc42.dll that software needs ships with Windows.
+
+> Your own copy of the 960L V4.x software folder. It isn’t included and can’t be redistributed.
+
+> macOS/Linux: Wine, set up through L960_HELPER_CMD. I’ve only tested this on Linux.
+
+> Credits (libraries in the build)
+
+Library,	Version,	Licence,	Copyright
+
+> JUCE	8.0.4	AGPLv3 or commercial JUCE licence	Raw Material Software Ltd
+
+> dsp56300 (DSP56301 core with JIT)	commit 46aa691d, patched	GPLv3	The dsp56300 authors
+
+> AsmJit (inside dsp56300)	as pinned by dsp56300	zlib	The AsmJit Authors
+
+> Intel ittnotify (inside dsp56300)	as bundled	GPL-2.0 or BSD-3-Clause	Intel Corporation
+floooh/chips (Z80 core)	commit 9e88298c	zlib/libpng	Andre Weissflog
+
+> MinGW-w64 runtime, libgcc, libstdc++ (in the hook DLL)	—	GCC Runtime Library Exception and the MinGW-w64 licences	GNU / MinGW-w64 projects
