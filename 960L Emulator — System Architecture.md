@@ -1,6 +1,6 @@
 # 960L Emulator — System Architecture
 
-Oct 18, 2026 · Written by Claude.
+Oct 18, 2026 · Written by Claude. 
 
 ## Overview
 
