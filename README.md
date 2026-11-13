@@ -18,9 +18,9 @@ I claim zero rights to this code in any fashion. Do what you want with it. I don
 
 The answer to that is because the Lexicon 960L is itself a Windows machine. More specifically it’s Windows NT running on an x86 computer with a lot of specialized hardware and software embedded.
 
-This means a lot of what the main box itself does can be ran on modern windows through some compatibility layers instead of being 100% emulation, although the solution Claude came up for it is… questionable.
+This means a lot of what the main box itself does can be ran on modern windows through some compatibility layers instead of being 100% emulation, although the solution Claude came up for it is… questionable. It could theoretically work in Wine but I haven't tested it.
 
-**Questionable?**
+**Wait, questionable?**
 
 I’m sorry for what you’re about to read. The gist of the jank-ass solution Claude came up with is the program copies a temporary version of the 960L folder into %APPDATA%\l960emu\software\960L. It then mounts two drive letters on your computer to match the file structure of the actual 960L hardware. As Claude explains:
 
