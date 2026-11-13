@@ -4,6 +4,7 @@ a proof-of-concept unfinished and barely-tested Lexicon 960L hybrid compatibilit
 It works via an interface that emulates the original LARC2 remote.
 
 ![Emulated LARC2 interface](screenshot.png)
+*Shown using the included "example" skin.*
 
 Build is in EXE and VST3 format. Requires the original 960L firmware, which is not included but can be freely downloaded from Lexicon’s own website. Simply download the zip file and extract it wherever you feel like. You can point to the location of the “960L” folder from within the emulator.
 
