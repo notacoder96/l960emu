@@ -42,6 +42,8 @@ While the main box runs on x86 hardware with Windows NT, emulation is still requ
 **I don’t care about any of that! Can I use this as a plugin in my projects?!**
 Yes, you technically can, although I don’t recommend it because this has only been tested on one machine under one set of circumstances. Session recall seems to work in Cubase 15, to some extent, but who knows what could go wrong.
 
+The plugin should be able to be found under "notacoder" in your DAW's plugin list.
+
 **Does it actually sound like the original hardware?**
 I have no idea. I like how it sounds here, but I don’t have the original hardware to compare it against. There are likely inaccuracies in how this thing handles emulating the specialized Lexichips and whatnot the DSP of the 960L runs on.
 
