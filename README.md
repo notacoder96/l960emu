@@ -40,11 +40,13 @@ Is any of this the ideal way to do this? Nope! But engineering a different solut
 While the main box runs on x86 hardware with Windows NT, emulation is still required for the proprietary Lexicon hardware that’s necessary for the thing to function. The LARC2 remote also requires full emulation because it’s an ARM processor running Windows CE, which isn’t compatible with desktop Windows in the same way some of the box’s code is.
 
 **I don’t care about any of that! Can I use this as a plugin in my projects?!**
+
 Yes, you technically can, although I don’t recommend it because this has only been tested on one machine under one set of circumstances. Session recall seems to work in Cubase 15, to some extent, but who knows what could go wrong.
 
 The plugin should be able to be found under "notacoder" in your DAW's plugin list.
 
 **Does it actually sound like the original hardware?**
+
 I have no idea. I like how it sounds here, but I don’t have the original hardware to compare it against. There are likely inaccuracies in how this thing handles emulating the specialized Lexichips and whatnot the DSP of the 960L runs on.
 
 
