@@ -1,5 +1,5 @@
 # l960emu
-a proof-of-concept unfinished and barely-tested Lexicon 960L hybrid compatibility layer and emulator for Windows.
+a proof-of-concept unfinished and barely-tested Lexicon 960L hybrid compatibility layer and emulator for Windows 10/11.
 
 It works via an interface that emulates the original LARC2 remote.
 
